@@ -28,10 +28,10 @@ Before running the script, ensure the following requirements are met:
    cd GCI-OpenSSL-Manager
 
 
-2. **Get the latest OpenSSL msi file download link from the URL:**
+2. **Get the latest OpenSSL msi file download link from the URL and parse it to the variable $opensslDownloadUrl:**
    ```sh
    https://slproweb.com/products/Win32OpenSSL.html
-   ```  ```
+   
 
 3. **Run the script with administrator privileges:**
    ```powershell
