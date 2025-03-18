@@ -26,9 +26,14 @@ Before running the script, ensure the following requirements are met:
    ```sh
    git clone https://github.com/yourusername/GCI-OpenSSL-Manager.git
    cd GCI-OpenSSL-Manager
-   ```
 
-2. **Run the script with administrator privileges:**
+
+2. **Get the latest OpenSSL msi file download link from the URL:**
+   ```sh
+   https://slproweb.com/products/Win32OpenSSL.html
+   ```  ```
+
+3. **Run the script with administrator privileges:**
    ```powershell
    Set-ExecutionPolicy Bypass -Scope Process -Force
    .\OpenSSL_Update.ps1
