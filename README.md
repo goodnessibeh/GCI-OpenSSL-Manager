@@ -1,5 +1,4 @@
 # GCI-OpenSSL-Manager
-# GCI-OpenSSL-Manager
 
 ## Overview
 **GCI-OpenSSL-Manager** is a PowerShell script designed to automatically update OpenSSL libraries on Windows systems. The script scans the system for existing OpenSSL library files and replaces them with the latest version. It can be used as a **Platform Script in Microsoft Intune** for enterprise deployments or executed **locally on a Windows machine** with administrative privileges.
@@ -61,7 +60,7 @@ If any errors occur, review the log file for detailed information.
 This project is licensed under the MIT License.
 
 ## Author
-**Goodness Caleb Ibeh** – [GCI Cyber LLC](https://yourcompanywebsite.com)
+**Goodness Caleb Ibeh** 
 
 ---
 Feel free to contribute, suggest improvements, or report issues!
