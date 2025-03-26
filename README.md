@@ -1,14 +1,19 @@
 # GCI-OpenSSL-Manager
 
+## Author
+Goodness Caleb Ibeh
+
 ## Overview
-**GCI-OpenSSL-Manager** is a PowerShell script designed to automatically update OpenSSL libraries on Windows systems. The script scans the system for existing OpenSSL library files and replaces them with the latest version. It can be used as a **Platform Script in Microsoft Intune** for enterprise deployments or executed **locally on a Windows machine** with administrative privileges.
+**GCI-OpenSSL-Manager** is a PowerShell script designed to automatically update OpenSSL libraries on Windows systems. The script Downloads the latest version of the Open SSL installer, installs silently and scans the system for existing OpenSSL library files and replaces them with the latest version. It can be used as a **Platform Script in Microsoft Intune** for enterprise deployments or executed **locally on a Windows machine** with administrative privileges.
 
 ## Features
+- Ensures the script runs with administrative privileges.
 - Downloads the latest OpenSSL installer from a trusted source.
 - Installs OpenSSL silently without user intervention.
 - Scans the system for outdated OpenSSL library files.
 - Replaces old library files with the latest versions.
 - Generates detailed logs for auditing and troubleshooting.
+- Cleans up temporary files after installation.
 
 ## Prerequisites
 Before running the script, ensure the following requirements are met:
@@ -26,12 +31,12 @@ Before running the script, ensure the following requirements are met:
    ```sh
    git clone https://github.com/yourusername/GCI-OpenSSL-Manager.git
    cd GCI-OpenSSL-Manager
+   ```
 
-
-2. **Get the latest OpenSSL msi file download link from the URL and parse it to the variable $opensslDownloadUrl:**
+2. **Get the latest OpenSSL MSI file download link from the URL and parse it to the variable `$opensslDownloadUrl`:**
    ```sh
    https://slproweb.com/products/Win32OpenSSL.html
-   
+   ```
 
 3. **Run the script with administrator privileges:**
    ```powershell
@@ -54,18 +59,29 @@ This script can be used as a **Platform Script** in Intune for automated enterpr
 6. Assign the script to the appropriate device groups.
 7. Click **Save** and deploy the script.
 
-## Logging & Troubleshooting
-The script logs all activities to:
+## Log File
+All script activities are logged to:
 ```
 C:\ProgramData\OpenSSL_Update.log
 ```
-If any errors occur, review the log file for detailed information.
+This file can be reviewed for troubleshooting purposes.
+
+## Troubleshooting
+| Issue | Possible Cause | Solution |
+|--------|----------------|-----------|
+| Script does not run | Lack of admin privileges | Right-click PowerShell and select "Run as Administrator" |
+| Download failure | Internet connection issues | Check network connectivity and retry |
+| Installation failure | MSI extraction issue | Ensure enough disk space and rerun script |
+| Cleanup failure | Files in use | Manually delete `Downloads\ExtractedDllFiles` and MSI file |
 
 ## License
 This project is licensed under the MIT License.
 
-## Author
-**Goodness Caleb Ibeh** 
+## Disclaimer
+This script downloads OpenSSL from `https://slproweb.com`. Always verify the URL and check the official OpenSSL website for the latest releases.
+
+## Author Contact
+For support or inquiries, contact Goodness Caleb Ibeh via [LinkedIn](https://www.linkedin.com/) or [GitHub](https://github.com/).
 
 ---
 Feel free to contribute, suggest improvements, or report issues!
