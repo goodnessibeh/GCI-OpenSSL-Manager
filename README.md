@@ -81,7 +81,7 @@ This project is licensed under the MIT License.
 This script downloads OpenSSL from `https://slproweb.com`. Always verify the URL and check the official OpenSSL website for the latest releases.
 
 ## Author Contact
-For support or inquiries, contact Goodness Caleb Ibeh via [LinkedIn](https://www.linkedin.com/) or [GitHub](https://github.com/).
+For support or inquiries, contact Goodness Caleb Ibeh via [LinkedIn](https://www.linkedin.com/in/caleb-ibeh) or [GitHub](https://github.com/goodnessibeh).
 
 ---
 Feel free to contribute, suggest improvements, or report issues!
