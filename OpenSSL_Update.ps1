@@ -1,19 +1,20 @@
 ﻿# OpenSSL Update Script for Intune
 # Author: Goodness Caleb Ibeh
-# Description: This script searches for OpenSSL libraries and updates them with the latest version.
+# Description: This script downloads OpenSSL, extracts it, and runs the installer silently.
+
+# Check if running as Administrator
+if (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Warning "This script requires administrative privileges. Restarting with elevated permissions..."
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`"" -Verb RunAs
+    exit
+}
 
 # Configuration
 $logFile = "C:\ProgramData\OpenSSL_Update.log"
-$opensslDownloadUrl = "https://slproweb.com/download/Win64OpenSSL-3_4_1.msi" # Get latest MSI download link from https://slproweb.com/products/Win32OpenSSL.html
+$opensslDownloadUrl = "https://slproweb.com/download/Win64OpenSSL-3_4_1.msi"
 $downloadPath = "$env:USERPROFILE\Downloads\Win64OpenSSL-3_4_1.msi"
-$installDir = "$env:ProgramFiles\OpenSSL-Win64"
-$opensslLibNames = @("libcrypto-3-x64.dll", "libssl-3-x64.dll", "libssl-3.dll", "libcrypto-3.dll", "libssl32.dll")
-
-# Custom request headers
-$headers = @{
-    "Host" = "slproweb.com"
-    "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-}
+$tempExtractDir = "$env:USERPROFILE\Downloads\ExtractedDllFiles"
+$installDir = "C:\Program Files\OpenSSL-Win64"
 
 # Function to log messages
 function Log-Message {
@@ -29,14 +30,14 @@ function Log-Message {
 # Start logging
 Log-Message "Starting OpenSSL library update process."
 
-# Step 1: Download and Install OpenSSL
+# Step 1: Download OpenSSL installer
 Log-Message "Downloading OpenSSL installer..."
 try {
     [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
     
     $webClient = New-Object System.Net.WebClient
     $webClient.Headers.Add("Host", "slproweb.com")
-    $webClient.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    $webClient.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0.0 Safari/537.36")
     $webClient.DownloadFile($opensslDownloadUrl, $downloadPath)
     
     Log-Message "OpenSSL installer downloaded successfully."
@@ -47,82 +48,41 @@ try {
     [System.Net.ServicePointManager]::ServerCertificateValidationCallback = $null
 }
 
-# Step 2: Install OpenSSL
+# Step 2: Extract OpenSSL to a temporary folder
+Log-Message "Extracting OpenSSL files to $tempExtractDir..."
 try {
-    Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$downloadPath`" /quiet /norestart" -Wait
-    Log-Message "OpenSSL installed successfully."
+    New-Item -Path $tempExtractDir -ItemType Directory -Force
+    Start-Process -FilePath "msiexec.exe" -ArgumentList "/a `"$downloadPath`" TARGETDIR=`"$tempExtractDir`" /quiet" -Wait
+    Log-Message "OpenSSL files extracted successfully."
 } catch {
-    Log-Message "Error installing OpenSSL: $_" -color "Red"
+    Log-Message "Error extracting OpenSSL files: $_" -color "Red"
     exit 3
 }
 
-# Step 3: Search for OpenSSL libraries
-Log-Message "Searching for OpenSSL libraries..."
-$foundLibs = Get-ChildItem -Path "C:\" -Recurse -Include $opensslLibNames -ErrorAction SilentlyContinue
-
-if ($foundLibs.Count -eq 0) {
-    Log-Message "No OpenSSL libraries found on the system." -color "Red"
+# Step 3: Run the extracted installer to install OpenSSL silently
+Log-Message "Running the extracted installer to install OpenSSL silently..."
+try {
+    $installerPath = Get-ChildItem -Path $tempExtractDir -Include "setup-*.exe" -Recurse -ErrorAction Stop | Select-Object -First 1
+    if ($installerPath) {
+        Start-Process -FilePath $installerPath.FullName -ArgumentList "/silent /norestart" -Wait -NoNewWindow
+        Log-Message "OpenSSL installed successfully."
+    } else {
+        Log-Message "Installer not found in the extracted folder." -color "Red"
+        exit 7
+    }
+} catch {
+    Log-Message "Error installing OpenSSL: $_" -color "Red"
     exit 4
 }
 
-# Log the number of found/discovered library files in yellow
-Log-Message "Found $($foundLibs.Count) OpenSSL libraries on the system." -color "Yellow"
-
-# Log found libraries
-Log-Message "Found the following OpenSSL libraries:"
-foreach ($lib in $foundLibs) {
-    Log-Message "  - $($lib.FullName)" -color "Yellow"
-}
-
-# Step 4: Replace each found library with the latest version
-$replacedLibs = @()
-$notReplacedLibs = @()
-foreach ($lib in $foundLibs) {
-    $libName = $lib.Name
-    $libPath = $lib.FullName
-    $latestLibPath = Join-Path -Path $installDir -ChildPath $libName
-
-    try {
-        # Replace with the latest version (forcefully)
-        if (Test-Path $latestLibPath) {
-            Copy-Item -Path $latestLibPath -Destination $libPath -Force
-            Log-Message "Updated $libPath with the latest version from $latestLibPath." -color "Green"
-            $replacedLibs += $libPath
-        } else {
-            Log-Message "Latest version of $libName not found at $latestLibPath. Skipping replacement." -color "Red"
-            $notReplacedLibs += $libPath
-        }
-    } catch {
-        Log-Message "Error updating $libPath : $_" -color "Red"
-        $notReplacedLibs += $libPath
-    }
-}
-
-# Log replaced libraries
-if ($replacedLibs.Count -gt 0) {
-    Log-Message "Replaced the following OpenSSL libraries:" -color "Green"
-    foreach ($lib in $replacedLibs) {
-        Log-Message "  - $lib" -color "Green"
-    }
-} else {
-    Log-Message "No OpenSSL libraries were replaced." -color "Yellow"
-}
-
-# Log libraries not replaced
-if ($notReplacedLibs.Count -gt 0) {
-    Log-Message "The following OpenSSL libraries were not replaced:" -color "Red"
-    foreach ($lib in $notReplacedLibs) {
-        Log-Message "  - $lib" -color "Red"
-    }
-}
-
-# Step 5: Clean up downloaded installer
+# Step 4: Clean up downloaded installer and extracted files
 try {
+    Remove-Item -Path $tempExtractDir -Recurse -Force
     Remove-Item -Path $downloadPath -Force
-    Log-Message "Downloaded installer cleaned up successfully."
+    Log-Message "Downloaded installer and extracted files cleaned up successfully."
 } catch {
-    Log-Message "Error cleaning up installer: $_" -color "Red"
-    exit 6
+    Log-Message "Error cleaning up installer and extracted files: $_" -color "Red"
+    exit 5
 }
 
 Log-Message "OpenSSL library update process completed successfully."
