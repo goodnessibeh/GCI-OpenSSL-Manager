@@ -1,88 +1,104 @@
 # GCI-OpenSSL-Manager
 
+## Overview
+This PowerShell script automates the process of updating OpenSSL library files across Windows systems. It's designed to be deployed via Microsoft Intune to ensure consistent security updates for OpenSSL libraries on managed devices.
+
+## Features
+- Downloads the latest OpenSSL installer from official sources
+- Silently installs OpenSSL without user interaction
+- Scans the entire system for existing OpenSSL DLL files
+- Replaces outdated DLL files with the latest versions
+- Handles files that are in use by scheduling them for replacement on next reboot
+- Creates detailed logs and summary reports for monitoring and troubleshooting
+- Automatically elevates permissions if needed
+
+## Prerequisites
+- Windows 10/11 or Windows Server 2016+
+- PowerShell 5.1 or higher
+- Administrator privileges
+- Internet connection to download the installer
+
+## Installation
+1. Download the `systemWideOpenSSLupdate.ps1` script from the GCI-OpenSSL-Manager repository
+2. Deploy via Microsoft Intune as a PowerShell script:
+   - In the Microsoft Endpoint Manager admin center, navigate to **Devices** > **Windows** > **PowerShell scripts**
+   - Add the script with "Run this script using the logged-on credentials" set to No and "Run script in 64-bit PowerShell" set to Yes
+   - Assign the script to your desired device groups
+
+## Manual Execution
+To run the script manually:
+
+```powershell
+.\OpenSSL_Update.ps1
+```
+
+The script will automatically request elevation if not running with administrator privileges.
+
+## Configuration
+You can customize the script by modifying these variables at the top:
+
+```powershell
+$logFile = "C:\ProgramData\OpenSSL_Update.log"
+$opensslDownloadUrl = "https://slproweb.com/download/Win64OpenSSL-3_4_1.msi"
+$downloadPath = "$env:USERPROFILE\Downloads\Win64OpenSSL-3_4_1.msi"
+$tempExtractDir = "$env:USERPROFILE\Downloads\ExtractedDllFiles"
+$installDir = "C:\Program Files\OpenSSL-Win64"
+```
+
+- `$logFile`: Path where logs will be stored
+- `$opensslDownloadUrl`: URL to download the OpenSSL installer
+- `$downloadPath`: Local path to save the downloaded installer
+- `$tempExtractDir`: Temporary directory for extraction
+- `$installDir`: Installation directory for OpenSSL
+
+## Monitoring and Reporting
+The script generates two key files for monitoring:
+
+1. **Detailed Log File**: Located at `C:\ProgramData\OpenSSL_Update.log`
+   - Contains step-by-step information about the execution process
+   - Includes timestamps, progress updates, and any errors encountered
+
+2. **Summary Report**: Located at `C:\ProgramData\OpenSSL_Update_Summary.txt`
+   - Provides a concise summary of the update operation
+   - Shows file counts, success rates, and per-DLL statistics
+
+## Troubleshooting
+
+### Common Issues
+1. **Download Failures**
+   - Check internet connectivity
+   - Verify the download URL is current and accessible
+   - Review proxy settings if applicable
+
+2. **Installation Errors**
+   - Ensure there are no conflicting OpenSSL installations
+   - Verify the system has sufficient disk space
+   - Check for pending reboots that might interfere with installation
+
+3. **File Replacement Errors**
+   - Some files may be locked by running processes
+   - These will be scheduled for replacement on next reboot
+   - Check the log file for specific file paths and error messages
+
+### Log Analysis
+For detailed troubleshooting, examine the log file at `C:\ProgramData\OpenSSL_Update.log`. Critical errors are highlighted in red within the console output and logged with timestamps.
+
+## Security Considerations
+- The script downloads files from trusted sources (slproweb.com)
+- All downloaded files are verified before installation
+- Original DLL files are backed up before replacement
+- The script uses proper error handling and cleanup procedures
+
 ## Author
 Goodness Caleb Ibeh
 
-## Overview
-**GCI-OpenSSL-Manager** is a PowerShell script designed to automatically update OpenSSL libraries on Windows systems. The script Downloads the latest version of the Open SSL installer, installs silently and scans the system for existing OpenSSL library files and replaces them with the latest version. It can be used as a **Platform Script in Microsoft Intune** for enterprise deployments or executed **locally on a Windows machine** with administrative privileges.
-
-## Features
-- Ensures the script runs with administrative privileges.
-- Downloads the latest OpenSSL installer from a trusted source.
-- Installs OpenSSL silently without user intervention.
-- Scans the system for outdated OpenSSL library files.
-- Replaces old library files with the latest versions.
-- Generates detailed logs for auditing and troubleshooting.
-- Cleans up temporary files after installation.
-
-## Prerequisites
-Before running the script, ensure the following requirements are met:
-
-- Windows 10, Windows 11, or Windows Server.
-- PowerShell with administrative privileges.
-- Internet access to download the OpenSSL installer.
-- Microsoft Intune (for deployment as a Platform Script).
-
-## Installation & Usage
-
-### 1. Running Locally on Windows
-
-1. **Clone the repository:**
-   ```sh
-   git clone https://github.com/yourusername/GCI-OpenSSL-Manager.git
-   cd GCI-OpenSSL-Manager
-   ```
-
-2. **Get the latest OpenSSL MSI file download link from the URL and parse it to the variable `$opensslDownloadUrl`:**
-   ```sh
-   https://slproweb.com/products/Win32OpenSSL.html
-   ```
-
-3. **Run the script with administrator privileges:**
-   ```powershell
-   Set-ExecutionPolicy Bypass -Scope Process -Force
-   .\OpenSSL_Update.ps1
-   ```
-
-### 2. Deploying via Microsoft Intune
-This script can be used as a **Platform Script** in Intune for automated enterprise-wide deployment.
-
-#### Steps to Deploy:
-1. Sign in to the **Microsoft Intune Admin Center**.
-2. Navigate to **Devices > Scripts**.
-3. Click **Add > Windows 10 and later**.
-4. Upload the `OpenSSL_Update.ps1` script.
-5. Configure execution settings:
-   - Run this script using the **System context**.
-   - Enforce script execution with **Bypass execution policy**.
-   - Enable script logging for troubleshooting.
-6. Assign the script to the appropriate device groups.
-7. Click **Save** and deploy the script.
-
-## Log File
-All script activities are logged to:
-```
-C:\ProgramData\OpenSSL_Update.log
-```
-This file can be reviewed for troubleshooting purposes.
-
-## Troubleshooting
-| Issue | Possible Cause | Solution |
-|--------|----------------|-----------|
-| Script does not run | Lack of admin privileges | Right-click PowerShell and select "Run as Administrator" |
-| Download failure | Internet connection issues | Check network connectivity and retry |
-| Installation failure | MSI extraction issue | Ensure enough disk space and rerun script |
-| Cleanup failure | Files in use | Manually delete `Downloads\ExtractedDllFiles` and MSI file |
+- GitHub: [github.com/goodnessibeh](https://github.com/goodnessibeh)
+- LinkedIn: [linkedin.com/in/caleb-ibeh](https://linkedin.com/in/caleb-ibeh)
 
 ## License
-This project is licensed under the MIT License.
+[Specify your license information here]
 
-## Disclaimer
-This script downloads OpenSSL from `https://slproweb.com`. Always verify the URL and check the official OpenSSL website for the latest releases.
-
-## Author Contact
-For support or inquiries, contact Goodness Caleb Ibeh via [LinkedIn](https://www.linkedin.com/in/caleb-ibeh) or [GitHub](https://github.com/goodnessibeh).
-
----
-Feel free to contribute, suggest improvements, or report issues!
-
+## Version History
+- 1.0.0: Initial release
+- 1.0.1: Fixed parameter handling in error logs
+- 1.1.0: Added improved progress reporting and status summary
